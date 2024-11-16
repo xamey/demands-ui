@@ -25,6 +25,12 @@ export function DayOffCalendar({
     return dayOff?.status;
   };
 
+  const disabledDays = [
+    ...dayOffs.map((d) => d.date),
+    { after: new Date(new Date().getFullYear(), 11, 31) },
+    { before: new Date(new Date().getFullYear(), 0, 1) },
+  ];
+
   return (
     <Calendar
       mode="single"
@@ -41,7 +47,7 @@ export function DayOffCalendar({
           onSelectDate(date);
         }
       }}
-      disabled={dayOffs.map((d) => d.date)}
+      disabled={disabledDays}
       className={cn("rounded-md border", className)}
       modifiers={{
         approved: (date) => getDayOffStatus(date) === "approved",
