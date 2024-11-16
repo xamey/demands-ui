@@ -9,9 +9,13 @@ export function Calendar({ user }: { user: User }) {
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [isLoadingDayOffs, setIsLoadingDayOffs] = useState(false);
   const [dayOffs, setDayOffs] = useState<DayOff[]>([]);
+  const [maxDayOffs, setMaxDayOffs] = useState<number | null>(null);
+
   const { toast } = useToast();
 
-  const maxDayOffs = 9;
+  useEffect(() => {
+    setMaxDayOffs(api.getMaxDayOffs());
+  }, []);
 
   const getDayOff = (date: Date): DayOff | undefined => {
     return dayOffs.find(
@@ -43,7 +47,7 @@ export function Calendar({ user }: { user: User }) {
     }
 
     const totalDayOffs = dayOffs.filter(
-      (d) => d.status === "pending" || d.status === "accepted"
+      (d) => d.status === "pending" || d.status === "approved"
     ).length;
 
     if (totalDayOffs >= maxDayOffs) {
@@ -104,12 +108,12 @@ export function Calendar({ user }: { user: User }) {
     <>
       <div className="flex justify-between items-center">
         <p className="text-lg">
-          Bonjour {user?.name}, Jours de TT exceptionnels restants:{" "}
+          Bonjour {user?.name}, il vous reste{" "}
           {maxDayOffs -
             dayOffs.filter(
-              (d) => d.status === "pending" || d.status === "accepted"
+              (d) => d.status === "pending" || d.status === "approved"
             ).length}{" "}
-          jours
+          jours de TT exceptionnels.
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2">

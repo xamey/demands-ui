@@ -1,4 +1,4 @@
-export type DayOffStatus = "pending" | "refused" | "accepted";
+export type DayOffStatus = "pending" | "refused" | "approved";
 
 export interface DayOff {
   id: string;
@@ -16,6 +16,10 @@ export interface User {
 }
 
 export interface AuthResponse {
-  token: string;
-  user: User;
+  user: {
+    token: string;
+    email: string;
+    name: string;
+    superUser: boolean;
+  };
 }

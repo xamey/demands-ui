@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { fr } from "date-fns/locale";
 
 interface DayOffListProps {
   dayOffs: DayOff[];
@@ -26,13 +27,13 @@ export function DayOffList({
 }: DayOffListProps) {
   const statusColors = {
     pending: "bg-yellow-100 text-yellow-900",
-    accepted: "bg-green-100 text-green-900",
+    approved: "bg-green-100 text-green-900",
     refused: "bg-red-100 text-red-900",
   };
 
   const statusTranslations: Record<DayOffStatus, string> = {
     pending: "demande en cours",
-    accepted: "demande acceptée",
+    approved: "demande acceptée",
     refused: "demande refusée",
   };
 
@@ -52,7 +53,9 @@ export function DayOffList({
               >
                 <div className="space-y-1">
                   <p className="font-medium">
-                    {format(new Date(dayOff.date), "MMMM d, yyyy")}
+                    {format(new Date(dayOff.date), "dd MMMM yyyy", {
+                      locale: fr,
+                    })}
                   </p>
                   <Badge
                     variant="secondary"

@@ -1,8 +1,8 @@
 import type { AuthResponse, User } from "./types";
 import type { DayOff } from "./types";
 
-const API_URL = import.meta.env.PUBLIC_API_URL || "/api/v1";
-const IS_MOCK = true;
+const API_URL = "http://localhost:3000";
+const IS_MOCK = false;
 
 // Mock data
 const mockUser: User = {
@@ -18,7 +18,7 @@ const mockDayOffs: DayOff[] = [
     id: "1",
     userId: "1",
     date: new Date("2024-04-15"),
-    status: "accepted",
+    status: "approved",
     createdAt: "2024-04-01T10:00:00Z",
   },
   {
@@ -33,11 +33,13 @@ const mockDayOffs: DayOff[] = [
 const isBrowser = typeof window !== "undefined";
 
 class ApiClient {
-  private token: string | null = null;
+  token: string | null = null;
+  user: User | null = null;
 
   constructor() {
     if (isBrowser) {
       this.token = window.localStorage.getItem("token");
+      this.user = JSON.parse(window.localStorage.getItem("user") || "{}");
     }
   }
 
@@ -108,13 +110,14 @@ class ApiClient {
   }
 
   async login(email: string, password: string): Promise<AuthResponse> {
-    const response = await this.request("/auth/login", {
+    const response = (await this.request("/users/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
-    this.token = response.token;
+      body: JSON.stringify({ user: { email, password } }),
+    })) as AuthResponse;
+    this.token = response.user.token;
     if (isBrowser) {
-      window.localStorage.setItem("token", response.token);
+      window.localStorage.setItem("token", this.token);
+      window.localStorage.setItem("user", JSON.stringify(response.user));
     }
     return response;
   }
@@ -126,15 +129,36 @@ class ApiClient {
     });
   }
 
+  async getUsers(): Promise<User[]> {
+    return (await this.request("/users")).users;
+  }
+
   async getDayOffs(): Promise<DayOff[]> {
-    return this.request("/dayoffs");
+    return (await this.request("/dayoffs")).dayOffs.map((dayOff) => ({
+      ...dayOff,
+      date: new Date(dayOff.date),
+    }));
+  }
+
+  async getDayOffsForUser(userId: string): Promise<DayOff[]> {
+    return (await this.request(`/dayoffs/${userId}`)).dayOffs.map((dayOff) => ({
+      ...dayOff,
+      date: new Date(dayOff.date),
+    }));
   }
 
   async createDayOff(date: Date): Promise<DayOff> {
-    return this.request("/dayoffs", {
-      method: "POST",
-      body: JSON.stringify({ date }),
-    });
+    const dayOff = (
+      await this.request("/dayoffs", {
+        method: "POST",
+        body: JSON.stringify({ dayoff: { date } }),
+      })
+    ).dayOff;
+
+    return {
+      ...dayOff,
+      date: new Date(dayOff.date),
+    };
   }
 
   async cancelDayOff(id: string): Promise<void> {
@@ -144,15 +168,21 @@ class ApiClient {
   }
 
   async acceptDayOff(id: string): Promise<void> {
-    await this.request(`/dayoffs/${id}/accept`, {
-      method: "POST",
+    await this.request(`/dayoffs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ dayoff: { status: "approved" } }),
     });
   }
 
   async refuseDayOff(id: string): Promise<void> {
-    await this.request(`/dayoffs/${id}/refuse`, {
-      method: "POST",
+    await this.request(`/dayoffs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ dayoff: { status: "refused" } }),
     });
+  }
+
+  getMaxDayOffs(): number {
+    return 9;
   }
 
   logout() {

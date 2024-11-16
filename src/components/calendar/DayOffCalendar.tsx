@@ -44,12 +44,12 @@ export function DayOffCalendar({
       disabled={dayOffs.map((d) => d.date)}
       className={cn("rounded-md border", className)}
       modifiers={{
-        accepted: (date) => getDayOffStatus(date) === "accepted",
+        approved: (date) => getDayOffStatus(date) === "approved",
         pending: (date) => getDayOffStatus(date) === "pending",
         refused: (date) => getDayOffStatus(date) === "refused",
       }}
       modifiersClassNames={{
-        accepted: "bg-green-100 text-green-900",
+        approved: "bg-green-100 text-green-900",
         pending: "bg-yellow-100 text-yellow-900",
         refused: "bg-red-100 text-red-900",
       }}

@@ -16,41 +16,28 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useState, useEffect } from "react";
-import type { DayOffStatus } from "@/lib/types";
+import type { DayOffStatus, User } from "@/lib/types";
 import { format } from "date-fns";
 import { api } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
 const maxDemands = 9;
 
-const users = [
-  {
-    id: 1,
-    name: "John Doe",
-  },
-  {
-    id: 2,
-    name: "Jane Doe",
-  },
-];
-
-// Mock function to simulate fetching demands for a user
-const fetchDemandsForUser = async (userId: number) => {
-  // Replace this with your actual API call
-  return [
-    { id: 1, status: "pending", date: new Date("2024-04-15") },
-    { id: 2, status: "accepted", date: new Date("2024-04-16") },
-  ];
-};
-
 export function Dashboard() {
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState("");
   const [demands, setDemands] = useState([]);
+  const [maxDemands, setMaxDemands] = useState<number | null>(null);
   const [remainingDemands, setRemainingDemands] = useState(0);
   const [acceptLoading, setAcceptLoading] = useState<string | null>(null);
   const [refuseLoading, setRefuseLoading] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    api.getUsers().then(setUsers);
+    setMaxDemands(api.getMaxDayOffs());
+  }, []);
 
   const isLoading =
     Boolean(acceptLoading) || Boolean(refuseLoading) || Boolean(deleteLoading);
@@ -59,7 +46,7 @@ export function Dashboard() {
     if (selectedUser) {
       const user = users.find((user) => user.name === selectedUser);
       if (user) {
-        fetchDemandsForUser(user.id).then(setDemands);
+        api.getDayOffsForUser(user.id).then(setDemands);
       }
     } else {
       setDemands([]);
@@ -71,20 +58,20 @@ export function Dashboard() {
       maxDemands -
         demands.filter(
           (demand) =>
-            demand.status === "pending" || demand.status === "accepted"
+            demand.status === "pending" || demand.status === "approved"
         ).length
     );
   }, [demands]);
 
   const statusColors = {
     pending: "bg-yellow-100 text-yellow-900",
-    accepted: "bg-green-100 text-green-900",
+    approved: "bg-green-100 text-green-900",
     refused: "bg-red-100 text-red-900",
   };
 
   const statusTranslations: Record<DayOffStatus, string> = {
     pending: "À traiter",
-    accepted: "Acceptée",
+    approved: "Acceptée",
     refused: "Refusée",
   };
 
@@ -92,7 +79,7 @@ export function Dashboard() {
     setAcceptLoading(demandId);
     await api.acceptDayOff(demandId);
     setDemands(
-      demands.map((d) => (d.id === demandId ? { ...d, status: "accepted" } : d))
+      demands.map((d) => (d.id === demandId ? { ...d, status: "approved" } : d))
     );
     toast({
       title: "Success",
@@ -172,6 +159,11 @@ export function Dashboard() {
           </Command>
         </PopoverContent>
       </Popover>
+      {demands.length === 0 && (
+        <p className="text-center text-sm text-gray-500">
+          Aucune demande de jours de TT trouvée.
+        </p>
+      )}
       {demands.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold mb-4">
@@ -231,7 +223,7 @@ export function Dashboard() {
                         </Button>
                       </span>
                     )}
-                    {demand.status === "accepted" && (
+                    {demand.status === "approved" && (
                       <Button
                         variant="outline"
                         onClick={() => handleDelete(demand.id)}
