@@ -4,7 +4,6 @@ import { api } from "@/lib/api";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import type { User } from "@/lib/types";
 import { Calendar } from "@/components/calendar/Calendar";
 import { Dashboard } from "./admin/Dashboard";

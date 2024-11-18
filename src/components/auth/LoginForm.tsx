@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@/lib/types";
+import { ToastAction } from "@/components/ui/toast";
 
 const formSchema = z.object({
   email: z.string().email(),

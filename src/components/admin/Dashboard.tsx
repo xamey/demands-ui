@@ -223,7 +223,8 @@ export function Dashboard() {
                         </Button>
                       </span>
                     )}
-                    {demand.status === "approved" && (
+                    {(demand.status === "approved" ||
+                      demand.status === "refused") && (
                       <Button
                         variant="outline"
                         onClick={() => handleDelete(demand.id)}
