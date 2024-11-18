@@ -1,7 +1,7 @@
 import type { AuthResponse, User } from "./types";
 import type { DayOff } from "./types";
 
-const API_URL = process.env.API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.API_URL || "http://localhost:3000";
 const IS_MOCK = false;
 
 // Mock data
